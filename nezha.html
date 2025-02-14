@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小哪吒冲榜计划</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .movie-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chart-container {
+            height: 300px;
+            margin-top: 30px;
+        }
+        .text-primary {
+            color: #0d6efd !important;
+        }
+        .text-success {
+            color: #198754 !important;
+        }
+        .text-danger {
+            color: #dc3545 !important;
+        }
+        /* 优化 Top 20 列表在手机端的样式 */
+        @media (max-width: 576px) {
+            #top20-list .list-group-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            #top20-list .list-group-item span {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 错误提示 -->
+        <div id="error-message" class="alert alert-danger mb-4" style="display: none;"></div>
+
+        <h1 class="mb-4">小哪吒冲榜计划</h1>
+        
+        <!-- 票房排行榜 -->
+        <div id="movies-container"></div>
+
+        <!-- 哪吒票房详情 -->
+        <div class="card movie-card mt-4">
+            <div class="card-body">
+                <h4 class="card-title">哪吒之魔童闹海</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="text-muted">全球票房：</p>
+                        <p class="display-4 text-primary" id="total-boxoffice">-</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted">当前排名：</p>
+                        <p class="display-4 text-success" id="rank">-</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted">距离提升到下一个名次还差：</p>
+                        <p class="text-muted" id="boxoffice-difference">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 全球票房 Top 20 列表 -->
+        <div class="card movie-card mt-4">
+            <div class="card-body">
+                <h4 class="card-title">全球票房 Top 20</h4>
+                <ul class="list-group" id="top20-list">
+                    <!-- 列表项将由 JavaScript 动态生成 -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // 全局变量
+        let globalData = null;
+        let nezhaChart = null;
+        let top20List = null;
+        let previousTop10 = [];
+        let previousTop20 = [];
+        let fetchInterval = null;
+
+        // 请求数据
+        async function fetchGlobalBoxOffice() {
+              try {
+                const response = await axios.get('http://v.tengzhou.co:3000/api/movie');
+                
+                // 校验响应数据结构
+                if (!response.data?.data || !Array.isArray(response.data.data)) {
+                  throw new Error('接口返回数据结构异常');
+                }
+            
+                globalData = response.data.data;
+                hideError();
+                updateUI();
+              } catch (error) {
+                console.error('数据获取失败:', error);
+                showError('数据获取失败，请稍后重试');
+              }
+        }
+
+        // 更新 UI
+        function updateUI() {
+            // 清除旧图表
+            if (top20List) top20List = null;
+
+            // 检查排名是否变化，仅在变化时更新列表
+            const newTop20 = globalData.slice(0, 20).map(movie => movie.movieName);
+            const hasRankingChanged = !arraysEqual(newTop20, previousTop20);
+                
+            // 校验数据有效性
+            if (!validateData()) {
+                showError('数据格式异常，无法渲染');
+                return;
+            }
+
+            updateNezhaDetails();
+
+            if (hasRankingChanged) {
+                renderTop20List();
+                previousTop20 = newTop20;
+            }
+        }
+
+        // 数据校验
+        function validateData() {
+            if (!globalData || !Array.isArray(globalData)) {
+                console.error('无效数据:', globalData);
+                return false;
+            }
+            return true;
+        }
+
+        // 更新哪吒详情
+        function updateNezhaDetails() {
+            const nezha = globalData.find(movie => 
+                movie.movieName === '哪吒之魔童闹海' || 
+                movie.movieName === '哪吒之魔童闹海'
+            );
+
+            if (!nezha) {
+                console.warn('未找到哪吒电影数据');
+                return;
+            }
+
+            document.getElementById('total-boxoffice').textContent = nezha.rawValue || '-';
+            document.getElementById('rank').textContent = nezha.rank || '-';
+            updateBoxofficeDifference(nezha.rank);
+        }
+
+        // 计算并更新距离提升到下一个名次还差多少票房
+        function updateBoxofficeDifference(currentRank) {
+            if (currentRank <= 1) {
+                document.getElementById('boxoffice-difference').textContent = 'N/A';
+                return;
+            }
+
+            const currentMovie = globalData.find(movie => movie.rank === currentRank);
+            const previousMovie = globalData.find(movie => movie.rank === currentRank - 1);
+
+            if (currentMovie && previousMovie) {
+                const difference = (parseFloat(previousMovie.rawValue) - parseFloat(currentMovie.rawValue));
+                document.getElementById('boxoffice-difference').textContent = `${difference.toLocaleString()} 元`;
+            } else {
+                document.getElementById('boxoffice-difference').textContent = '-';
+            }
+        }
+
+        // 渲染 Top 20 列表
+        function renderTop20List() {
+            const top20 = globalData.slice(0, 20);
+            const top20ListElement = document.getElementById('top20-list');
+            top20ListElement.innerHTML = ''; // 清空现有列表
+            
+            top20.forEach((movie, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item';
+                listItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <strong>第${index + 1}名：</strong> ${movie.movieName}
+                        </div>
+                        <div>
+                            <span class="badge bg-primary">票房：${movie.box} 亿</span>
+                        </div>
+                    </div>
+                `;
+                top20ListElement.appendChild(listItem);
+            });
+        }
+
+        // 显示/隐藏错误提示
+        function showError(message) {
+            const el = document.getElementById('error-message');
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+        function hideError() {
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchGlobalBoxOffice();
+            fetchInterval = setInterval(fetchGlobalBoxOffice, 1000);
+        });
+
+        // 清理
+        window.addEventListener('beforeunload', () => {
+            clearInterval(fetchInterval);
+            if (top20List) {
+                top20List = null;
+            }
+        });
+
+        // 辅助函数：比较两个数组是否相等
+        function arraysEqual(a, b) {
+            if (a.length !== b.length) return false;
+            for (let i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>
