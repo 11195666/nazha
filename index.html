@@ -99,7 +99,7 @@
         // 请求数据
         async function fetchGlobalBoxOffice() {
               try {
-                const response = await axios.get('https://nezha.qwe.tech:3000/api/movie');
+                const response = await axios.get('https://nezha.qwe.tech/api/movie');
                 
                 // 校验响应数据结构
                 if (!response.data?.data || !Array.isArray(response.data.data)) {
