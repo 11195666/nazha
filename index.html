@@ -158,7 +158,7 @@
             list.innerHTML = globalData.slice(0, 10).map(m => `
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div>
-                        <span class="rank-badge me-3">#${m.rank}</span>
+                        <span class="rank-badge me-3">${m.rank}</span>
                         ${m.movieName}
                     </div>
                     <span class="badge bg-primary">${m.formatted}元</span>
