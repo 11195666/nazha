@@ -6,289 +6,181 @@
     <title>小哪吒冲榜计划</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        :root {
-            --primary-color: #e63946;
-            --secondary-color: #f1faee;
-            --accent-color: #a8dadc;
-        }
-
         body {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            min-height: 100vh;
+            background: #f8f9fa;
             padding: 2rem 1rem;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         .header-logo {
             height: 60px;
             margin-right: 1rem;
-            transition: transform 0.3s;
-        }
-
-        .header-logo:hover {
-            transform: rotate(-10deg);
         }
 
         .movie-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
             margin-bottom: 2rem;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-            border: none;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .movie-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-        }
-
-        .stats-icon {
-            width: 40px;
-            height: 40px;
-            margin-right: 1rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
 
         .value-display {
             font-size: 2.5rem;
             font-weight: 700;
-            letter-spacing: -1px;
-            color: var(--primary-color);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            color: #dc3545;
         }
 
-        .difference-display {
-            font-size: 1.5rem;
-            font-weight: 500;
-            background: linear-gradient(45deg, #ff6b6b, #ff8787);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .stats-icon {
+            width: 40px;
+            margin-right: 1rem;
         }
 
         .rank-badge {
-            background: var(--primary-color);
-            font-size: 1.1rem;
-            padding: 0.5rem 1.2rem;
-            border-radius: 25px;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            transition: opacity 0.3s;
-        }
-
-        @media (max-width: 768px) {
-            .value-display {
-                font-size: 2rem;
-            }
-            
-            .header-logo {
-                height: 50px;
-            }
+            background: #0d6efd;
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- 加载动画 -->
-    <div class="loading-overlay" id="loading">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
-
     <div class="container">
-        <!-- 错误提示 -->
-        <div id="error-message" class="alert alert-danger mb-4" style="display: none;"></div>
-
-        <!-- 标题区 -->
-        <div class="d-flex align-items-center mb-5">
+        <div class="d-flex align-items-center mb-4">
             <img src="https://blog.tengzhou.ren/web/logo.png" 
                  alt="哪吒Logo" 
                  class="header-logo">
-            <h1 class="text-primary mb-0">小哪吒冲榜计划</h1>
+            <h1 class="text-danger mb-0">小哪吒冲榜计划</h1>
         </div>
 
-        <!-- 哪吒票房详情 -->
-        <div class="card movie-card">
+        <div class="movie-card">
             <div class="card-body">
-                <h2 class="card-title mb-4 d-flex align-items-center">
+                <h3 class="d-flex align-items-center mb-4">
                     <img src="https://blog.tengzhou.ren/web/icon.png" 
-                         alt="票房图标" 
-                         class="stats-icon">
+                         class="stats-icon"
+                         alt="票房图标">
                     实时票房数据
-                </h2>
-                <div class="row g-4">
-                    <!-- 全球票房 -->
-                    <div class="col-12 col-md-6">
-                        <div class="bg-light p-4 rounded-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="bi bi-globe fs-4 text-primary me-2"></i>
-                                <span class="text-muted">全球总票房</span>
-                            </div>
+                </h3>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <p class="text-muted mb-1">全球总票房</p>
                             <div class="value-display" id="total-boxoffice">-</div>
                         </div>
                     </div>
-
-                    <!-- 当前排名 -->
-                    <div class="col-12 col-md-6">
-                        <div class="bg-light p-4 rounded-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="bi bi-trophy fs-4 text-primary me-2"></i>
-                                <span class="text-muted">当前排名</span>
-                            </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <p class="text-muted mb-1">当前排名</p>
                             <div class="value-display" id="rank">-</div>
                         </div>
                     </div>
-
-                    <!-- 差距显示 -->
+                    
                     <div class="col-12">
-                        <div class="bg-light p-4 rounded-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="bi bi-graph-up fs-4 text-primary me-2"></i>
-                                <span class="text-muted">距离前一名差距</span>
-                            </div>
-                            <div class="difference-display" id="boxoffice-difference">-</div>
+                        <div>
+                            <p class="text-muted mb-1">距离前一名差距</p>
+                            <div class="value-display" id="boxoffice-difference">-</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 全球票房 Top 10 列表 -->
-        <div class="card movie-card">
+        <div class="movie-card">
             <div class="card-body">
-                <h3 class="card-title mb-4 d-flex align-items-center">
-                    <i class="bi bi-star-fill text-warning me-2"></i>
-                    全球票房 Top 10
-                </h3>
+                <h3 class="mb-3">全球票房 TOP10</h3>
                 <ul class="list-group" id="top20-list"></ul>
             </div>
         </div>
     </div>
 
-    <!-- 引入图标库 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        // 配置项
         const API_ENDPOINT = 'https://maoyan.qwe.tech/api/maoyan';
-        const NEZHA_MOVIE_ID = 1294273;
-        const REFRESH_INTERVAL = 1000;
+        const NEZHA_ID = 1294273;
 
-        // 应用状态
         let globalData = null;
         let previousTop10 = [];
-        let fetchInterval = null;
 
-        // 格式化数值（新增千分位）
-        function formatNumber(value) {
-            return Number(value).toLocaleString('zh-CN');
-        }
-
-        async function fetchGlobalBoxOffice() {
+        // 核心函数
+        async function fetchData() {
             try {
-                const response = await axios.get(API_ENDPOINT);
+                const res = await axios.get(API_ENDPOINT);
+                if (!res.data?.data) throw new Error('数据格式错误');
                 
-                if (!validateResponse(response)) {
-                    throw new Error('Invalid API response structure');
-                }
-
-                globalData = processRawData(response.data.data);
-                hideLoading();
-                hideError();
-                updateUI();
-            } catch (error) {
-                hideLoading();
-                handleError(error);
+                globalData = res.data.data.map((item, index) => ({
+                    ...item,
+                    rank: index + 1,
+                    formatted: formatNumber(item.rawValue)
+                }));
+                
+                updateDisplay();
+            } catch (err) {
+                console.error('请求失败:', err);
+                alert('数据加载失败，请稍后刷新');
             }
         }
 
-        function processRawData(data) {
-            return data.map((item, index) => ({
-                ...item,
-                rank: index + 1,
-                formattedValue: `${formatNumber(item.rawValue)} 元`
-            }));
-        }
-
-        function updateUI() {
-            const nezhaData = globalData.find(item => item.movieId === NEZHA_MOVIE_ID);
-            
-            if (nezhaData) {
-                document.getElementById('total-boxoffice').textContent = nezhaData.formattedValue;
-                document.getElementById('rank').textContent = nezhaData.rank;
-                updateRankingDifference(nezhaData.rank);
+        function updateDisplay() {
+            // 哪吒数据
+            const nezha = globalData.find(m => m.movieId === NEZHA_ID);
+            if (nezha) {
+                document.getElementById('total-boxoffice').textContent = `${nezha.formatted}元`;
+                document.getElementById('rank').textContent = nezha.rank;
+                updateDifference(nezha.rank);
             }
-            
-            if (shouldUpdateList()) {
-                renderTop10List();
+
+            // TOP10列表
+            if (shouldUpdate()) {
+                renderTop10();
             }
         }
 
-        function updateRankingDifference(currentRank) {
+        function updateDifference(rank) {
             const element = document.getElementById('boxoffice-difference');
-            if (currentRank <= 1) {
-                element.textContent = '🎉 当前已是第一名';
+            if (rank <= 1) {
+                element.textContent = "已是第一名!";
                 return;
             }
 
-            const currentMovie = globalData.find(m => m.rank === currentRank);
-            const prevMovie = globalData.find(m => m.rank === currentRank - 1);
-
-            if (currentMovie && prevMovie) {
-                const difference = prevMovie.rawValue - currentMovie.rawValue;
-                element.textContent = `${formatNumber(difference)} 元`;
-            } else {
-                element.textContent = '数据更新中...';
+            const current = globalData.find(m => m.rank === rank);
+            const prev = globalData.find(m => m.rank === rank - 1);
+            if (current && prev) {
+                const diff = prev.rawValue - current.rawValue;
+                element.textContent = `${formatNumber(diff)}元`;
             }
         }
 
-        function renderTop10List() {
-            const listElement = document.getElementById('top20-list');
-            listElement.innerHTML = globalData.slice(0, 10).map(movie => `
-                <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+        function renderTop10() {
+            const list = document.getElementById('top20-list');
+            list.innerHTML = globalData.slice(0, 10).map(m => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div>
-                        <span class="rank-badge badge me-3">#${movie.rank}</span>
-                        <span class="fw-bold">${movie.movieName}</span>
-                        <small class="text-muted ms-2">${movie.releaseTime}</small>
+                        <span class="rank-badge me-3">#${m.rank}</span>
+                        ${m.movieName}
                     </div>
-                    <span class="badge bg-primary rounded-pill px-3 py-2">
-                        ${movie.formattedValue}
-                    </span>
+                    <span class="badge bg-primary">${m.formatted}元</span>
                 </li>
             `).join('');
         }
 
-        // 其他辅助函数保持不变...
-        
-        // 新增加载状态控制
-        function hideLoading() {
-            document.getElementById('loading').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('loading').style.display = 'none';
-            }, 300);
+        // 工具函数
+        function formatNumber(num) {
+            return num.toLocaleString('zh-CN');
+        }
+
+        function shouldUpdate() {
+            const currentIds = globalData.slice(0, 10).map(m => m.movieId);
+            const changed = JSON.stringify(currentIds) !== JSON.stringify(previousTop10);
+            previousTop10 = currentIds;
+            return changed;
         }
 
         // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchGlobalBoxOffice();
-            fetchInterval = setInterval(fetchGlobalBoxOffice, REFRESH_INTERVAL);
-        });
-
-        window.addEventListener('beforeunload', () => {
-            clearInterval(fetchInterval);
-        });
+        fetchData();
+        setInterval(fetchData, 1000);
     </script>
 </body>
 </html>
