@@ -126,6 +126,7 @@
                          alt="票房图标" 
                          class="stats-icon">
                     实时票房数据
+                    <span id="current-time" class="ms-3 text-muted" style="font-size: 0.8rem; text-align: right; flex-grow: 1;"></span> <!-- 调整字体大小和右对齐 -->
                 </h2>
                 <div class="row g-4">
                     <!-- 全球票房 -->
@@ -221,6 +222,25 @@
                 
             }
         }
+        function updateUI() {
+            // ...
+            updateCurrentTime(); // 调用更新时间函数
+            // ...
+        }
+
+        function updateCurrentTime() {
+            const now = new Date();
+            const formattedTime = `更新时间：${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+            document.getElementById('current-time').textContent = formattedTime;
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchGlobalBoxOffice();
+            fetchInterval = setInterval(fetchGlobalBoxOffice, REFRESH_INTERVAL);
+            updateCurrentTime(); // 确保在这里调用一次以初始化时间
+            setInterval(updateCurrentTime, 1000); // 每秒更新时间
+        });
 
         function updateUI() {
 
